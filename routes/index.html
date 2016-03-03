@@ -1,0 +1,64 @@
+<html>
+	<body style="font-family: Helvetica;">
+		
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/locale/af.js"></script>
+		<script>
+		  var socket = io.connect('http://localhost:3200');
+		  socket.on('socketToMe', function (data) {
+			  var total = data.data1+data.data2;
+			  var percent1 = data.data1/total * 100;
+			  var percent2 = data.data2/total * 100;
+			  
+			  document.getElementById("datos1").innerHTML = data.data1;
+			  document.getElementById("datos2").innerHTML = data.data2;
+			  
+			  document.getElementById("percent1").innerHTML = Math.floor(percent1)+"%";
+			  document.getElementById("percent2").innerHTML = Math.floor(percent2)+"%";
+			  
+			  document.getElementById("cardname1").innerHTML = data.items[0];
+			  document.getElementById("cardname2").innerHTML = data.items[1];
+			  
+			  document.getElementById("date").innerHTML = data.date;
+			  
+		    console.log(data);
+		  });
+		</script>
+		<div class="title" style="width:600px; margin:0 auto; margin-top:100px;">
+			<h1>People has <span class="bluetext" style="color:#3c9ecb;">tweeted</span> about</h1>
+		</div>
+		
+		<div class="cardsContainer" style="width:650px; height:200px;margin:10px auto;">
+			<div style="width:300px;height: 200px;float:left; margin-right:10px;">
+				<div class="cardname" style="font-size:40px; font-weight:bold;"><span id="cardname1"></span></div>
+				<div style="float:left; width:150px; height: 150px;">
+						<img src="http://13458-presscdn-0-97.pagely.netdna-cdn.com/wp-content/uploads/2015/12/donald-trump-square.jpg" width="150"/>
+				</div>
+				<div style="float:right; width: 150px; height:150px; color:white; background: gray; text-align:center;">
+					<div id="datos1" style="font-size:30px;"></div>
+					<small>Times</small>
+					<div id="percent1" style="font-size:60px;"></div>
+					
+				</div>
+			</div>
+			
+			<div style="width:300px;height: 150px;float:left; margin-right:10px;">
+				<div class="cardname" style="font-size:40px; font-weight:bold;"><span id="cardname2"></span></div>
+				<div style="float:left; width:150px; height: 150px;">
+						<img src="https://cmgpbppostonpolitics.files.wordpress.com/2016/02/hillary-square.jpg" width="150"/>		
+				</div>
+				<div style="float:right; width: 150px; height:150px; color:white; background: gray; text-align:center;">
+					<div id="datos2" style="font-size:30px;"></div>
+					<small>Times</small>
+					<div id="percent2" style="font-size:60px;"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="bottom" style="width:600px; margin:10px auto;">
+			<h1>Since: <b id="date"></b></h1>
+		</div>
+	
+	</body>
+</html>
