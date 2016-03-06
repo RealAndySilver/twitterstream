@@ -1,62 +1,266 @@
 <html>
 	<body style="font-family: Helvetica;">
 		
+		<style>
+			.avatarImg{
+			    height: 150px;
+			    width: 150px;
+			    border-radius: 75px;
+			}
+			.blueText{
+				color:#3c9ecb;
+			}
+			#bg{
+				width:100%;
+				height: 100%;
+				position: fixed;
+				background: ;
+				z-index: -1;
+				padding: 0;
+				margin: 0;
+			}
+			.bottom{
+				width:680px; 
+				margin:10px auto;
+			}
+			.card{
+				width:330px;
+				height: 300px;
+				float:left; 
+				margin-right:10px;
+				margin-bottom: 5px;
+				//background: #726a73;
+			}
+			.cardBottom{
+				height:50px; 
+				float:left; 
+				margin-top:10px;
+			}
+			.cardname{
+				font-size:35px; 
+				font-weight:bold;
+				margin-top:10px;
+			}
+			.cardsContainer{
+				width:680px; 
+				height:450px;
+				margin:10px auto;
+			}
+			.greenText{
+				color:#a6c583;
+			}
+			.imgContainer{
+				float:left; 
+				width:150px; 
+				height: 180px; 
+				margin-top:10px; 
+				overflow: hidden;
+			}
+			.indTps{
+				font-size:18px; 
+				color:#f74e4e;
+			}
+			.indRtps{
+				font-size:18px; 
+				color:#f74e4e;
+			}
+			.indTpsContainer{
+				margin-left:-0px;
+			}
+			.indRtpsContainer{
+				margin-left:-0px;
+			}
+			.keywordsContainer{
+				margin-top:10px;
+			}
+			.lightGrayText{
+				color: #d2d2d2;
+			}
+			.orangeText{
+				color: #fca438;
+			}
+			.percent{
+				font-size:50px;
+			}
+			.retweetNumber{
+				font-size:15px; 
+				margin-top:0px;
+				color: #b20034;
+			}
+			.rightContainer{
+				float:right; 
+				width: 170px; 
+				height:180px; 
+				margin-top:10px; 
+				margin-left: 10px;
+				color:gray; 
+				padding-left:0px;
+				//background: #ce5858;
+			}
+			.rtpsContainer{
+				width:650px;
+				text-align: left;
+			}
+			.rtpsText{
+				color:gray;
+				font-size:20px; 
+				font-weight:0;
+			}
+			.title{
+				width:680px; 
+				margin:0 auto; 
+				margin-top:0px; 
+				text-align: left;
+			}
+			.total{
+				font-size: 30px; 
+				font-weight: bold;
+			}
+			.totalContainer{
+				width:680px; 
+				margin:0 auto; 
+				margin-top:0px;
+			}
+			.totalNumber{
+				color:#85d45e;
+				font-size:100px;
+			}
+			.tpsContainer{
+				width:650px;
+				text-align: left;
+			}
+			.tpsText{
+				color:gray;
+				font-size:20px; 
+				font-weight:0;
+			}
+			.tweetNumber{
+				font-size:30px; 
+				margin-top:10px;
+				color: #f17171;
+			}
+			
+		</style>
+		
+		
+		
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/locale/af.js"></script>
 		<script>
-		  var socket = io.connect('http://localhost:3200');
-		  socket.on('socketToMe', function (data) {
-			  var total = data.data1+data.data2;
-			  var percent1 = data.data1/total * 100;
-			  var percent2 = data.data2/total * 100;
+			var socket = io.connect('http://localhost:3200');
+			var loadOnce = 0;
+			var tps = 0;
+			var lastTotalObject = {tweets:0, retweets:0};
+			var totalObject = {tweets:0, retweets:0};
+			var totalArray = [];
+			var lastTotalArray = [];
+			var percent = 0;
+			var total = 0;
+			var localData = {};
+			function numberWithCommas(x) {
+				return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			}
+			socket.on('broadcast', function (data) {
 			  
-			  document.getElementById("datos1").innerHTML = data.data1;
-			  document.getElementById("datos2").innerHTML = data.data2;
-			  
-			  document.getElementById("percent1").innerHTML = Math.floor(percent1)+"%";
-			  document.getElementById("percent2").innerHTML = Math.floor(percent2)+"%";
-			  
-			  document.getElementById("cardname1").innerHTML = data.items[0];
-			  document.getElementById("cardname2").innerHTML = data.items[1];
-			  
-			  document.getElementById("date").innerHTML = data.date;
-			  
-		    console.log(data);
-		  });
+				total = data.numbers.reduce(function(prev,current){return prev + current;});
+				for (var i =0; i<data.items.length;i++){
+					if(!document.getElementById("tweetNumber"+(i+1))){
+						document.getElementById("cardsContainer").style.height = (data.items.length/2*150)+'px';
+							document.getElementById("cardsContainer").innerHTML += 
+							'<div class="card">'+
+								'<div class="cardname">'+
+									'<span id="cardname'+(i+1)+'"></span>'+
+								'</div>'+
+								'<div class="imgContainer" style="">'+
+										'<img class="avatarImg" id="imgCard'+(i+1)+'"/>'+
+								'</div>'+
+								'<div class="rightContainer">'+
+									'<div id="tweetNumber'+(i+1)+'" class="tweetNumber"></div>'+
+									'<div><small>Times</small></div>'+
+									'<div id="retweetNumber'+(i+1)+'" class="retweetNumber"></div>'+
+									'<div><small>Retweets</small></div>'+
+									'<div id="percent'+(i+1)+'" class="percent"></div>'+
+									'<div class="indTpsContainer"><small>Tweets per sec: <span id="indTps'+(i+1)+'" class="indTps"></span></small></div>'+
+									'<div class="indRtpsContainer"><small>Retweets per sec: <span id="indRtps'+(i+1)+'" class="indRtps"></span></small></div>'+
+								'</div>'+
+								'<div class="cardBottom">'+
+									'<div class="keywordsContainer">'+
+										'<span class="greenText">Keywords: </span><small class="lightGrayText">'+data.items[i].twSearch+'</small>'+
+									'</div>'+
+								'</div>'+
+							'</div>';
+					}
+/*
+					if(!totalArray[i]){
+						totalArray[i] = {tweets:0,retweets:0};
+					}
+*/
+					totalArray[i] = data.items[i].total; 
+					localData = data;
+					percent = data.numbers[i]/total * 100;
+					document.getElementById("tweetNumber"+(i+1)).innerHTML = numberWithCommas(data.items[i].total.tweets);
+					document.getElementById("retweetNumber"+(i+1)).innerHTML = numberWithCommas(data.items[i].total.retweets);
+					document.getElementById("percent"+(i+1)).innerHTML = Math.floor(percent)+"%";
+					if(loadOnce<data.items.length){
+						document.getElementById("cardname"+(i+1)).innerHTML = data.items[i].name;
+						document.getElementById("imgCard"+(i+1)).src = data.items[i].avatar;
+						document.getElementById("date").innerHTML = moment(data.date).calendar();
+						loadOnce ++;
+					}
+				}
+				totalObject = data.total;
+				document.getElementById("total").innerHTML = numberWithCommas(data.total.tweets);			  
+			});
+		  
+		  setInterval(function(){
+			  if(localData){
+				  //This checks for overall tps
+				  lastTotalObject.tweets = lastTotalObject.tweets == 0 ? totalObject.tweets:lastTotalObject.tweets;
+				  document.getElementById("tps").innerHTML = "Tweets per sec: "+(totalObject.tweets-lastTotalObject.tweets);	
+				  //End of overall tps checking
+				  
+				  //This checks for overall rtps
+				  lastTotalObject.retweets = lastTotalObject.retweets == 0 ? totalObject.retweets:lastTotalObject.retweets;
+				  document.getElementById("rtps").innerHTML = "Retweets per sec: "+(totalObject.retweets-lastTotalObject.retweets);	
+				  //End of overall rtps checking
+				  
+				  lastTotalObject = totalObject;
+				  if(localData.items){
+					  for(var i = 0; i< localData.items.length; i++){
+						  //This checks for tps on each item
+						  if(!lastTotalArray[i]){
+							  lastTotalArray[i] = {tweets:0,retweets:0};
+						  }
+						  lastTotalArray[i].tweets = lastTotalArray[i].tweets == 0 ? totalArray[i].tweets:lastTotalArray[i].tweets;
+						  document.getElementById("indTps"+(i+1)).innerHTML = (totalArray[i].tweets-lastTotalArray[i].tweets);	
+						  document.getElementById("indRtps"+(i+1)).innerHTML = (totalArray[i].retweets-lastTotalArray[i].retweets);
+						  lastTotalArray[i] = totalArray[i];
+						  
+					  }
+				  }
+			  }
+		  }, 1000);
+		  
 		</script>
-		<div class="title" style="width:600px; margin:0 auto; margin-top:100px;">
-			<h1>People has <span class="bluetext" style="color:#3c9ecb;">tweeted</span> about</h1>
+		<div id="bg"></div>
+		<div class="title">
+			<h1>People have <span class="blueText">tweeted</span> about</h1>
 		</div>
 		
-		<div class="cardsContainer" style="width:650px; height:200px;margin:10px auto;">
-			<div style="width:300px;height: 200px;float:left; margin-right:10px;">
-				<div class="cardname" style="font-size:40px; font-weight:bold;"><span id="cardname1"></span></div>
-				<div style="float:left; width:150px; height: 150px;">
-						<img src="http://13458-presscdn-0-97.pagely.netdna-cdn.com/wp-content/uploads/2015/12/donald-trump-square.jpg" width="150"/>
-				</div>
-				<div style="float:right; width: 150px; height:150px; color:white; background: gray; text-align:center;">
-					<div id="datos1" style="font-size:30px;"></div>
-					<small>Times</small>
-					<div id="percent1" style="font-size:60px;"></div>
-					
-				</div>
+		<div id="cardsContainer" class="cardsContainer">
+		</div>
+		
+		<div class="totalContainer">
+			<div class="total">Total <span class="blueText">tweets</span>:  <span class="totalNumber" id="total"></span>
 			</div>
+			<div class="tpsContainer"><small><span class="tpsText" id="tps">Tweets per sec: 0</span></small></div>
+			<div class="rtpsContainer"><small><span class="rtpsText" id="rtps">Retweets per sec: 0</span></small></div>
 			
-			<div style="width:300px;height: 150px;float:left; margin-right:10px;">
-				<div class="cardname" style="font-size:40px; font-weight:bold;"><span id="cardname2"></span></div>
-				<div style="float:left; width:150px; height: 150px;">
-						<img src="https://cmgpbppostonpolitics.files.wordpress.com/2016/02/hillary-square.jpg" width="150"/>		
-				</div>
-				<div style="float:right; width: 150px; height:150px; color:white; background: gray; text-align:center;">
-					<div id="datos2" style="font-size:30px;"></div>
-					<small>Times</small>
-					<div id="percent2" style="font-size:60px;"></div>
-				</div>
-			</div>
 		</div>
 		
-		<div class="bottom" style="width:600px; margin:10px auto;">
+		<div class="bottom">
 			<h1>Since: <b id="date"></b></h1>
 		</div>
 	
