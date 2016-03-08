@@ -1,75 +1,39 @@
 var express = require('express');
 var router = express.Router();
 var Twitter = require('twitter');
-
+var data = require('./data');
 
 var client = new Twitter({
-/*
+
   consumer_key: '9DQU6wdH1mt9vdI7lFit2G3cF',
   consumer_secret: 'YKtdJnQ6cQbhg9SAno1EfAZLVUuLYaOVM1v2ODBcfW8vE0kQeK',
   access_token_key: '56472418-SN5Sk96CexrIlRJUloQkcVKUob0fkjtMiByMrjp3B',
   access_token_secret: '2LsQYoGpnRgyAUeGcdffoXmruZ6WBOc9UV4u9jVjiCMMl'
-*/
-   consumer_key: 'gQpVPNgXKQ5Y2a9dcQZ8hj5tL',
+
+  /*consumer_key: 'gQpVPNgXKQ5Y2a9dcQZ8hj5tL',
   consumer_secret: 'ZRENQ6QZCvziWHjJoSoMfyHF2VsDowvF8noAL3UFx59BFHAUpL',
   access_token_key: '56472418-2vwXMEJj5Y6nzNAlsD6IVLefmkbmibNZrhDj7SQ5u',
-  access_token_secret: 'Gl85KINH7os2Sq68BbRPAAaXQwL37AyD6P7IkIPGwm6im'
+  access_token_secret: 'Gl85KINH7os2Sq68BbRPAAaXQwL37AyD6P7IkIPGwm6im'*/
 });
   
-  var subject1 = {
-	  name : 'Donald Trump',
-	  twSearch : 'trump,realdonaldtrump',
-	  avatar:'https://pbs.twimg.com/profile_images/1980294624/DJT_Headshot_V2.jpg'
-  };
-  var subject2 = {
-	  name : 'Hillary Clinton',
-	  twSearch : 'clinton,hillaryclinton',
-	  avatar:'https://pbs.twimg.com/profile_images/705242833637265408/I4RZo3K4.jpg'
-  }; 
-  var subject3 = {
-	  name : 'Mitt Romney',
-	  twSearch : 'romney,MittRomney',
-	  avatar:'https://pbs.twimg.com/profile_images/563745525522890752/x3xEIlYL.jpeg'
-  };
-  var subject4 = {
-	  name : 'Bernie Sanders',
-	  twSearch : 'sanders,SenSanders',
-	  avatar:'https://pbs.twimg.com/profile_images/649202007723499524/lBGS6rs6.png'
-  };
-  var subject5 = {
-	  name : 'Ted Cruz',
-	  twSearch : 'ted cruz,tedcruz',
-	  avatar:'https://pbs.twimg.com/profile_images/478888071518093312/Rdiy3UhY.jpeg'
-  };
-  var subject6 = {
-	  name : 'Marco Rubio',
-	  twSearch : 'marco rubio,marcorubio',
-	  avatar:'https://pbs.twimg.com/profile_images/676932291885727744/02ydNw0Y.jpg'
-  };
-  var subject7 = {
-	  name : 'Barack Obama',
-	  twSearch : 'barac obama,obama,BarackObama',
-	  avatar:'https://pbs.twimg.com/profile_images/451007105391022080/iu1f7brY.png'
-  };
-  var subject8 = {
-	  name : 'Jimmy Fallon',
-	  twSearch : 'jimmy fallon,jimmyfallon',
-	  avatar:'https://pbs.twimg.com/profile_images/1194467116/new-resize-square.jpg'
-  };
+
   
-  var items = [subject1,subject2, subject3, subject4, subject5, subject6, /*subject7, subject8*/];
+  var items = data.items();
   var lowCase = '';
   var newDate = new Date();
   var total = {tweets:0, retweets:0};
   var numbers = [];
   var wordsCount = {};
-  var topWords = [];
+  var indWordsCount = {};
+  var topWords = {time:null, words:[]};
+  var timerFlag = true;
 router.get('/', function(req, res, next) {
   	var about = items.map(function(elem){return elem.twSearch}).join();
   	var i = 0;
   	var j = 0;
-  	var searchArray = []; 
+  	var keywordsArray = []; 
   	var words = '';
+  	var keywordsString = '';
   	//console.log(about);
 	client.stream('statuses/filter', {track: about}, function(stream) {
 		stream.on('data', function(tweet) {
@@ -82,7 +46,7 @@ router.get('/', function(req, res, next) {
 				lowCase = lowCase.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');//Regex for http &https
 				lowCase = lowCase.replace(/[^\w\s]/gi, '');//Regex for special characters
 				lowCase = lowCase.replace(/\n/,'');
-				lowCase = lowCase.replace(/\B@[a-z0-9_-]+/gi,'');
+				lowCase = lowCase.replace(/\B@[a-z0-9_-]+/gi,'');//Regex for twitter usernames
 				lowCase = lowCase.replace(/\s\s+/g, '');
 				lowCase = lowCase.replace(/rt/ig, '');
 				
@@ -92,25 +56,40 @@ router.get('/', function(req, res, next) {
 					if(!items[i].total){
 						items[i].total = {tweets:0, retweets:0};
 					}
-					searchArray = items[i].twSearch.split(',');
-					for(j=0; j<searchArray.length; j++){
+					keywordsArray = items[i].twSearch.split(/[ ,.]+/);
+					//keywordsArray = items[i].twSearch.split(',');
+					for(j=0; j<keywordsArray.length; j++){
 						
-						if(lowCase.indexOf(searchArray[j])>-1){
+						if(lowCase.indexOf(keywordsArray[j])>-1){
 							if(tweet.text.indexOf('RT ') == -1){
 								numbers[i] = numbers[i] ? numbers[i]+1:1;
 								items[i].total.tweets = numbers[i];
-								break;
+								//console.log('TT ',tweet.text);
 							}
 							else{
-								for(var m = 0; m < words.length; m++){
-									//words[m] = words.replace(,);
-									wordsCount["_" + words[m]] = (wordsCount["_" + words[m]] || 0) + 1;
-								}
 								items[i].total.retweets = items[i].total.retweets ? items[i].total.retweets+1:1;
+								for(var m = 0; m < words.length; m++){
+									wordsCount["_" + words[m]] = (wordsCount[/*"_" +*/ words[m]] || 0) + 1;
+									if(!indWordsCount[items[i].id]){
+										indWordsCount[items[i].id] = {}
+										indWordsCount[items[i].id].wordsCount = {};
+									}
+									//if(keywordsArray[j]words[m].indexOf()==-1){
+										//console.log('Inserting: ',words[m],' : ',keywordsArray[j]);
+										indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] = (indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] || 0) + 1;
+									//}
+									//else{
+										//console.log('Found, not inserting: ',words[m],' : ',keywordsArray[j]);
+									//}
+								}
 							}
+							break;
 						}
 					}
+					keywordsArray = [];
 				}
+				
+				//console.log('dif: ',keywordsArray);
 				//console.log('Words ',words);
 				i = 0;
 				j = 0;
@@ -126,81 +105,72 @@ router.get('/', function(req, res, next) {
 					total:total, 
 					items:items, 
 					date:newDate, 
-					words: topWords.length > 0 ? topWords:[]
+					words: {time:topWords.time, words:topWords.words.length > 0 ? topWords.words:[]}
 				});
 				
 			}
 		});		
 		stream.on('error', function(error) {/*console.log('error: '+error)*/});
 	});
-	setInterval(function(){
-		//var keysSorted = Object.keys(wordsCount).sort(function(a,b){return wordsCount[b]-wordsCount[a]})
-		var sortable = [];
-		for (var word in wordsCount){
-			if(	word.length>3 	&& 
-				word!= '_of' 	&&
-				word!= '_is' 	&&
-				word!= '_and' 	&&
-				word!= '_the' 	&&
-				word!= '_in' 	&&
-				word!= '_on' 	&&
-				word!= '_we' 	&&
-				word!= '_if' 	&&
-				word!= '_has' 	&&
-				word!= '_at' 	&&
-				word!= '_but' 	&&
-				word!= '_why' 	&&
-				word!= '_our' 	&&
-				word!= '_as' 	&&
-				word!= '_its' 	&&
-				word!= '_be' 	&&
-				word!= '_do' 	&&
-				word!= '_he' 	&&
-				word!= '_she' 	&&
-				word!= '_her' 	&&
-				word!= '_it' 	&&
-				word!= '_me' 	&&
-				word!= '_an' 	&&
-				word!= '_so' 	&&
-				word!= '_to' 	&&
-				word!= '_than'	&&
-				word!= '_for' 	&&
-				word!= '_you' 	&&
-				word!= '_his' 	&&
-				word!= '_him' 	&&
-				word!= '_im' 	&&
-				word!= '_who' 	&&
-				word!= '_are' 	&&
-				word!= '_this'	&&
-				word!= '_by' 	&&
-				word!= '_with' 	&&
-				word!= '_will' 	&&
-				word!= '_http' 	&&
-				word!= '_wont' 	&&
-				word!= '_they' 	&&
-				word!= '_them' 	&&
-				word!= '_that' 	&&
-				word!= '_what' 	&&
-				word!= '_did' 	&&
-				word!= '_too' 	&&
-				word!= '_was' 	&&
-				word!= '_had' 	&&
-				//word!= '_can' &&
-				//word!= '_cant' &&
-				word!= '_ ' &&
-				word!= '_  ' ){
-					
-					sortable.push([word.replace('_',''), wordsCount[word]]);
+	if(timerFlag){
+		timerFlag = false;
+		setInterval(function(){
+			//var keysSorted = Object.keys(wordsCount).sort(function(a,b){return wordsCount[b]-wordsCount[a]})
+			var sortable = [];
+			var indSortable = [];
+			var keywords = [];
+			for (var word in wordsCount){
+				if(	word.length>3 && data.notMeasuredWords.indexOf(word) == -1){
+						sortable.push([word.replace('_',''), wordsCount[word]]);
+				};
+			}
+			for(var item in items){
+				keywords = items[item].twSearch.split(',');
+				keywords = keywords.concat(data.notMeasuredWords).concat(items[item].exclude);
+				if(!items[item].wordsCount)
+					items[item].wordsCount = [];
+				if(indWordsCount[items[item].id]){
+					for (var indWord in indWordsCount[items[item].id].wordsCount){
+						
+						if(	indWord.length>3 && keywords.indexOf(indWord) == -1){
+															//for(var k = 0; k<keywords.length;k++){
+								//	if(indWord != '_'+keywords[k]){
+										//items[item].wordsCount.push([indWord.replace('_',''), indWordsCount[items[item].id].wordsCount[indWord]]);	
+										if(!indSortable[items[item].id]){
+											indSortable[items[item].id] = [];
+										}
+										indSortable[items[item].id].push([indWord.replace('_',''), indWordsCount[items[item].id].wordsCount[indWord]]);
+								//		break;
+								//	}
+								//}
+												
+						}
+						
+					}
+				}
 				
 			}
-		}
-		sortable.sort(function(a, b) {return b[1] - a[1]});
-		sortable.splice(10, sortable.length);
-		topWords = sortable;
-		sortable = [];
-		wordsCount = [];
-		//console.log('Words Count: ',sortable);
-	},10000);
+			
+			for(var j=0;j<items.length;j++){
+				if(indSortable[items[j].id]){
+					indSortable[items[j].id].sort(function(a, b) {return b[1] - a[1]});
+					//Items[trace] defines how many mostusedwords will be stored - needs to be managed in data
+					indSortable[items[j].id].splice(items[j].trace, indSortable[items[j].id].length);
+					items[j].mostUsedWords = {date: new Date, words:indSortable[items[j].id]};
+				}
+			}
+			
+			sortable.sort(function(a, b) {return b[1] - a[1]});
+			sortable.splice(10, sortable.length);
+			//console.log('Words: ',indSortable);
+			topWords.words = sortable;
+			topWords.time = new Date;
+			sortable = [];
+			wordsCount = [];
+			indSortable = [];
+			indWordsCount = [];
+		},60000);
+	}
 	res.sendFile(__dirname+'/index.html');
 	res.status(200);
 });

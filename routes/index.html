@@ -21,6 +21,9 @@
 			.darkRedText{
 				color: #b20034;
 			}
+			.darkGray{
+				color: #505050;
+			}
 			.blueText{
 				color:#3c9ecb;
 			}
@@ -73,16 +76,25 @@
 			}
 			.card{
 				width:330px;
-				height: 300px;
+				height: 350px;
 				float:left; 
 				margin-right:10px;
 				margin-bottom: 5px;
 				//background: #726a73;
 			}
 			.cardBottom{
-				height:50px; 
-				float:left; 
+				height:100px; 
+				//float:left; 
+				margin-top:0px;
+			}
+			.indMostUsedWordsContanier{
+				height: 30px;
+				width: 300;
+				float: left;
+			}
+			.keywordsContainer{
 				margin-top:10px;
+				float: left;
 			}
 			.cardname{
 				font-size:35px; 
@@ -102,7 +114,7 @@
 			.imgContainer{
 				float:left; 
 				width:150px; 
-				height: 180px; 
+				height: 200px; 
 				margin-top:10px; 
 				overflow: hidden;
 			}
@@ -121,8 +133,8 @@
 			.italic{
 				font-style: italic;
 			}
-			.keywordsContainer{
-				margin-top:10px;
+			.justify{
+				text-align: justify;
 			}
 			
 			.percent{
@@ -136,7 +148,7 @@
 			.rightContainer{
 				float:right; 
 				width: 170px; 
-				height:180px; 
+				height:200px; 
 				margin-top:10px; 
 				margin-left: 10px;
 				color:gray; 
@@ -167,8 +179,8 @@
 			.totalContainer{
 				width:680px; 
 				height: 260px;
-				margin:50px auto; 
-				margin-top: 50px;
+				margin:20px auto; 
+				margin-top: 70px;
 				padding: 0 10px;
 			}
 			.sectionContainer{
@@ -247,7 +259,6 @@
 			    width: 400px;
 			}
 			
-			
 			.totalRetweetsNumber{
 				font-size:100px;
 			}
@@ -287,7 +298,7 @@
 				totalTweets = data.items.map(function(elem){return elem.total.tweets}).reduce(function(prev,current){return prev + current;});
 				for (var i =0; i<data.items.length;i++){
 					if(!document.getElementById("tweetNumber"+(i+1))){
-						document.getElementById("cardsContainer").style.height = (data.items.length/2*300)+'px';
+						document.getElementById("cardsContainer").style.height = (data.items.length/2*350)+'px';
 							document.getElementById("cardsContainer").innerHTML += 
 							'<div class="card">'+
 								'<div class="cardname">'+
@@ -306,6 +317,7 @@
 									'<div class="indRtpsContainer"><small>Retweets per sec: <span id="indRtps'+(i+1)+'" class="indRtps darkRedText"></span></small></div>'+
 								'</div>'+
 								'<div class="cardBottom">'+
+									'<div class="indMostUsedWordsContanier smallFont justify blueText" id="indMostUsedWords'+(i+1)+'"></div>'+
 									'<div class="keywordsContainer">'+
 										'<span class="greenText">Keywords: </span><small class="lightGrayText">'+data.items[i].twSearch+'</small>'+
 									'</div>'+
@@ -318,6 +330,8 @@
 					document.getElementById("tweetNumber"+(i+1)).innerHTML = numberWithCommas(data.items[i].total.tweets);
 					document.getElementById("retweetNumber"+(i+1)).innerHTML = numberWithCommas(data.items[i].total.retweets);
 					document.getElementById("percent"+(i+1)).innerHTML = Math.floor(percent)+"%";
+					if(data.items[i].mostUsedWords.words)
+						document.getElementById("indMostUsedWords"+(i+1)).innerHTML = data.items[i].mostUsedWords.words.map(function(elem){return elem[0]}).join(' , ');
 					if(loadOnce<data.items.length){
 						document.getElementById("cardname"+(i+1)).innerHTML = data.items[i].name;
 						document.getElementById("imgCard"+(i+1)).src = data.items[i].avatar;
@@ -329,8 +343,9 @@
 				document.getElementById("totalTweets").innerHTML = numberWithCommas(data.total.tweets);	
 				document.getElementById("totalRetweets").innerHTML = numberWithCommas(data.total.retweets);	
 				document.getElementById("totalCombined").innerHTML = numberWithCommas(data.total.retweets+data.total.tweets);
-				if(data.words.length>0){
-					document.getElementById("overallMostUsed").innerHTML = numberWithCommas(data.words.map(function(elem){return elem[0]}).join(' , '));				  
+				if(data.words.words.length>0){
+					document.getElementById("overallMostUsedWords").innerHTML = numberWithCommas(data.words.words.map(function(elem){return elem[0]}).join(' , '));	
+					document.getElementById("overallMostUsedDate").innerHTML = moment(data.words.time).calendar();
 				}
 			});
 		  
@@ -357,10 +372,12 @@
 							if(!lastTotalArray[i]){
 							  lastTotalArray[i] = {tweets:0,retweets:0};
 							}
-							lastTotalArray[i].tweets = lastTotalArray[i].tweets == 0 ? totalArray[i].tweets:lastTotalArray[i].tweets;
-							document.getElementById("indTps"+(i+1)).innerHTML = (totalArray[i].tweets-lastTotalArray[i].tweets);	
-							document.getElementById("indRtps"+(i+1)).innerHTML = (totalArray[i].retweets-lastTotalArray[i].retweets);
-							lastTotalArray[i] = totalArray[i];
+							if(lastTotalArray[i]){
+								lastTotalArray[i].tweets = lastTotalArray[i].tweets == 0 ? totalArray[i].tweets:lastTotalArray[i].tweets;
+								document.getElementById("indTps"+(i+1)).innerHTML = (totalArray[i].tweets-lastTotalArray[i].tweets);	
+								document.getElementById("indRtps"+(i+1)).innerHTML = (totalArray[i].retweets-lastTotalArray[i].retweets);
+								lastTotalArray[i] = totalArray[i];
+							}
 						  
 						}
 					}
@@ -374,7 +391,11 @@
 		</div>
 		
 		<div id="cardsContainer" class="cardsContainer"></div>
-		<div class="mostUsedWordsContainer grayText italic"><span id="overallMostUsed"></span></div>
+		<div class="mostUsedWordsContainer ">
+			<div class="midFont bold darkGray">Most used words overall tweets</div>
+			<div class="regularFont darkGray bold" id="overallMostUsedDate">Calculating..</div>
+			<span class="pinkText italic" id="overallMostUsedWords"></span>
+		</div>
 		<div class="totalContainer">
 			<div class="sectionContainer">
 				<div class="totalTitleWrapper midBigFont">Total <span class="pinkText bold">Tweets</span>:</div>  
