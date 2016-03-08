@@ -2,38 +2,39 @@ var express = require('express');
 var router = express.Router();
 var Twitter = require('twitter');
 var data = require('./data');
-
+var schema = require('./schema');
 var client = new Twitter({
 
-  consumer_key: '9DQU6wdH1mt9vdI7lFit2G3cF',
+  /*consumer_key: '9DQU6wdH1mt9vdI7lFit2G3cF',
   consumer_secret: 'YKtdJnQ6cQbhg9SAno1EfAZLVUuLYaOVM1v2ODBcfW8vE0kQeK',
   access_token_key: '56472418-SN5Sk96CexrIlRJUloQkcVKUob0fkjtMiByMrjp3B',
-  access_token_secret: '2LsQYoGpnRgyAUeGcdffoXmruZ6WBOc9UV4u9jVjiCMMl'
+  access_token_secret: '2LsQYoGpnRgyAUeGcdffoXmruZ6WBOc9UV4u9jVjiCMMl'*/
 
-  /*consumer_key: 'gQpVPNgXKQ5Y2a9dcQZ8hj5tL',
+  consumer_key: 'gQpVPNgXKQ5Y2a9dcQZ8hj5tL',
   consumer_secret: 'ZRENQ6QZCvziWHjJoSoMfyHF2VsDowvF8noAL3UFx59BFHAUpL',
   access_token_key: '56472418-2vwXMEJj5Y6nzNAlsD6IVLefmkbmibNZrhDj7SQ5u',
-  access_token_secret: 'Gl85KINH7os2Sq68BbRPAAaXQwL37AyD6P7IkIPGwm6im'*/
+  access_token_secret: 'Gl85KINH7os2Sq68BbRPAAaXQwL37AyD6P7IkIPGwm6im'
 });
   
 
   
-  var items = data.items();
-  var lowCase = '';
-  var newDate = new Date();
-  var total = {tweets:0, retweets:0};
-  var numbers = [];
-  var wordsCount = {};
-  var indWordsCount = {};
-  var topWords = {time:null, words:[]};
-  var timerFlag = true;
+var items = data.items();
+var lowCase = '';
+var newDate = new Date();
+var total = {tweets:0, retweets:0};
+var numbers = [];
+var wordsCount = {};
+var indWordsCount = {};
+var topWords = {time:null, words:[]};
+var timerFlag = true;
+var about = items.map(function(elem){return elem.twSearch}).join();
+var i = 0;
+var j = 0;
+var keywordsArray = []; 
+var words = '';
+var keywordsString = '';
 router.get('/', function(req, res, next) {
-  	var about = items.map(function(elem){return elem.twSearch}).join();
-  	var i = 0;
-  	var j = 0;
-  	var keywordsArray = []; 
-  	var words = '';
-  	var keywordsString = '';
+  	
   	//console.log(about);
 	client.stream('statuses/filter', {track: about}, function(stream) {
 		stream.on('data', function(tweet) {
@@ -43,12 +44,12 @@ router.get('/', function(req, res, next) {
 				lowCase = tweet.text.toLowerCase();
 				//lowCase = lowCase.replace(/'/g, ' ');//Regex for quotes
 				lowCase = lowCase.replace(/\s\s+/g, '');//Regex for tabs newlines & spaces
-				lowCase = lowCase.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');//Regex for http &https
-				lowCase = lowCase.replace(/[^\w\s]/gi, '');//Regex for special characters
+				lowCase = lowCase.replace(/(?:https?|ftp):\/\/[\n\S]+/g,'');//Regex for http &https
+				lowCase = lowCase.replace(/[^\w\s]/gi,'');//Regex for special characters
 				lowCase = lowCase.replace(/\n/,'');
 				lowCase = lowCase.replace(/\B@[a-z0-9_-]+/gi,'');//Regex for twitter usernames
-				lowCase = lowCase.replace(/\s\s+/g, '');
-				lowCase = lowCase.replace(/rt/ig, '');
+				lowCase = lowCase.replace(/\s\s+/g,'');
+				lowCase = lowCase.replace(/rt/ig,'');
 				
 				words = lowCase.split(/\b/);
 
@@ -74,13 +75,7 @@ router.get('/', function(req, res, next) {
 										indWordsCount[items[i].id] = {}
 										indWordsCount[items[i].id].wordsCount = {};
 									}
-									//if(keywordsArray[j]words[m].indexOf()==-1){
-										//console.log('Inserting: ',words[m],' : ',keywordsArray[j]);
-										indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] = (indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] || 0) + 1;
-									//}
-									//else{
-										//console.log('Found, not inserting: ',words[m],' : ',keywordsArray[j]);
-									//}
+									indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] = (indWordsCount[items[i].id].wordsCount[/*"_" +*/ words[m]] || 0) + 1;
 								}
 							}
 							break;
@@ -88,9 +83,6 @@ router.get('/', function(req, res, next) {
 					}
 					keywordsArray = [];
 				}
-				
-				//console.log('dif: ',keywordsArray);
-				//console.log('Words ',words);
 				i = 0;
 				j = 0;
 				if(tweet.text.indexOf('RT ') == -1){
@@ -132,23 +124,14 @@ router.get('/', function(req, res, next) {
 				if(indWordsCount[items[item].id]){
 					for (var indWord in indWordsCount[items[item].id].wordsCount){
 						
-						if(	indWord.length>3 && keywords.indexOf(indWord) == -1){
-															//for(var k = 0; k<keywords.length;k++){
-								//	if(indWord != '_'+keywords[k]){
-										//items[item].wordsCount.push([indWord.replace('_',''), indWordsCount[items[item].id].wordsCount[indWord]]);	
-										if(!indSortable[items[item].id]){
-											indSortable[items[item].id] = [];
-										}
-										indSortable[items[item].id].push([indWord.replace('_',''), indWordsCount[items[item].id].wordsCount[indWord]]);
-								//		break;
-								//	}
-								//}
-												
-						}
-						
+						if(	indWord.length>3 && keywords.indexOf(indWord) == -1){	
+							if(!indSortable[items[item].id]){
+								indSortable[items[item].id] = [];
+							}
+							indSortable[items[item].id].push([indWord.replace('_',''), indWordsCount[items[item].id].wordsCount[indWord]]);				
+						}		
 					}
 				}
-				
 			}
 			
 			for(var j=0;j<items.length;j++){

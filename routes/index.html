@@ -1,5 +1,5 @@
 <html>
-	<body style="font-family: Helvetica;">
+	<body style="font-family: 'Myriad Pro', 'Helvetica';">
 		
 		<style>
 			/*TextColors*/
@@ -21,11 +21,14 @@
 			.darkRedText{
 				color: #b20034;
 			}
-			.darkGray{
+			.darkGrayText{
 				color: #505050;
 			}
 			.blueText{
 				color:#3c9ecb;
+			}
+			.whiteText{
+				color: white;
 			}
 			/*End of TextColors*/
 			
@@ -71,8 +74,18 @@
 			}
 			
 			.bottom{
-				width:680px; 
+				width:340px; 
+				height: 40px;
+				padding: 5px;
 				margin:10px auto;
+				text-align: center;
+				color: white;
+			}
+			.border-radius{
+				border-radius: 50px;
+			}
+			.blueBg{
+				background: #3c9ecb;
 			}
 			.card{
 				width:330px;
@@ -88,6 +101,7 @@
 				margin-top:0px;
 			}
 			.indMostUsedWordsContanier{
+				margin-top: 10px;
 				height: 30px;
 				width: 300;
 				float: left;
@@ -279,8 +293,8 @@
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		
 		<script>
-			var socket = io.connect('http://192.241.187.135:3200');
-			//var socket = io.connect('http://localhost:3200');
+			//var socket = io.connect('http://192.241.187.135:3200');
+			var socket = io.connect('http://localhost:3200');
 			var loadOnce = 0;
 			var tps = 0;
 			var lastTotalObject = {tweets:0, retweets:0};
@@ -295,29 +309,39 @@
 			}
 			socket.on('broadcast', function (data) {
 			  
+			  	function compare(a,b) {
+				  if (b.total.tweets < a.total.tweets)
+				    return -1;
+				  else if (b.total.tweets > a.total.tweets)
+				    return 1;
+				  else 
+				    return 0;
+				}
+				data.items.sort(compare);
+				
 				totalTweets = data.items.map(function(elem){return elem.total.tweets}).reduce(function(prev,current){return prev + current;});
 				for (var i =0; i<data.items.length;i++){
 					if(!document.getElementById("tweetNumber"+(i+1))){
 						document.getElementById("cardsContainer").style.height = (data.items.length/2*350)+'px';
 							document.getElementById("cardsContainer").innerHTML += 
 							'<div class="card">'+
-								'<div class="cardname">'+
+								'<div class="cardname darkGrayText">'+
 									'<span id="cardname'+(i+1)+'"></span>'+
 								'</div>'+
 								'<div class="imgContainer" style="">'+
 										'<img class="avatarImg" id="imgCard'+(i+1)+'"/>'+
 								'</div>'+
 								'<div class="rightContainer">'+
-									'<div id="tweetNumber'+(i+1)+'" class="tweetNumber pinkText"></div>'+
+									'<div id="tweetNumber'+(i+1)+'" class="tweetNumber pinkText bold"></div>'+
 									'<div><small>Times</small></div>'+
-									'<div id="retweetNumber'+(i+1)+'" class="retweetNumber darkRedText"></div>'+
+									'<div id="retweetNumber'+(i+1)+'" class="retweetNumber blueText bold"></div>'+
 									'<div><small>Retweets</small></div>'+
 									'<div id="percent'+(i+1)+'" class="percent"></div>'+
 									'<div class="indTpsContainer"><small>Tweets per sec: <span id="indTps'+(i+1)+'" class="indTps greenText"></span></small></div>'+
 									'<div class="indRtpsContainer"><small>Retweets per sec: <span id="indRtps'+(i+1)+'" class="indRtps darkRedText"></span></small></div>'+
 								'</div>'+
 								'<div class="cardBottom">'+
-									'<div class="indMostUsedWordsContanier smallFont justify blueText" id="indMostUsedWords'+(i+1)+'"></div>'+
+									'<div class="indMostUsedWordsContanier smallFont justify grayText" id="indMostUsedWords'+(i+1)+'"></div>'+
 									'<div class="keywordsContainer">'+
 										'<span class="greenText">Keywords: </span><small class="lightGrayText">'+data.items[i].twSearch+'</small>'+
 									'</div>'+
@@ -333,7 +357,7 @@
 					if(data.items[i].mostUsedWords.words)
 						document.getElementById("indMostUsedWords"+(i+1)).innerHTML = data.items[i].mostUsedWords.words.map(function(elem){return elem[0]}).join(' , ');
 					if(loadOnce<data.items.length){
-						document.getElementById("cardname"+(i+1)).innerHTML = data.items[i].name;
+						document.getElementById("cardname"+(i+1)).innerHTML = (i+1)+'. '+data.items[i].name;
 						document.getElementById("imgCard"+(i+1)).src = data.items[i].avatar;
 						document.getElementById("date").innerHTML = moment(data.date).calendar();
 						loadOnce ++;
@@ -392,8 +416,8 @@
 		
 		<div id="cardsContainer" class="cardsContainer"></div>
 		<div class="mostUsedWordsContainer ">
-			<div class="midFont bold darkGray">Most used words overall tweets</div>
-			<div class="regularFont darkGray bold" id="overallMostUsedDate">Calculating..</div>
+			<div class="midFont bold darkGrayText">Most used words overall tweets</div>
+			<div class="regularFont darkGrayText bold" id="overallMostUsedDate">Calculating..</div>
 			<span class="pinkText italic" id="overallMostUsedWords"></span>
 		</div>
 		<div class="totalContainer">
@@ -415,8 +439,8 @@
 				<div class="totalTpsWrapper align-right tpsAnimation"><small><span class="regularFont grayText" id="combinedTps">T+RT/sec: 0</span></small></div>
 			</div>
 		</div>
-		<div class="bottom">
-			<h1>Since: <b id="date"></b></h1>
+		<div class="bottom blueBg whiteText border-radius">
+			Since:<div class="regularFont bold whiteText" id="date"></div>
 		</div>
 	
 	</body>

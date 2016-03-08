@@ -30,7 +30,7 @@ exports.items = function(){
 	  name : 'Bernie Sanders',
 	  twSearch : 'sanders,SenSanders',
 	  avatar:'https://pbs.twimg.com/profile_images/649202007723499524/lBGS6rs6.png',
-	  exclude: ['bernie'],
+	  exclude: ['bernie','berniesanders'],
 	  trace:10
   };
   var subject5 = {
@@ -130,6 +130,9 @@ exports.notMeasuredWords =  [
 		'from' 	,
 		'would'	,
 		'have'	,
+		'just'	,
+		'want'	,
+		'their'	,
 		//'can' ,
 		//'cant' ,
 		' ' 	,
