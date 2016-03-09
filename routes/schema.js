@@ -24,6 +24,8 @@ var ProjectSchema= new mongoose.Schema({
 	projectname: {type: String, required: true,unique: false,},
 	twitterkeys: {type: Object, required: false,unique: false,},
 	notmeasured: {type: Array},
+	date_created: {type: Date, default: new Date()},
+	laststart_date: {type: Date},
 }),
 	Project= mongooseMain.model('Project',ProjectSchema);
 	exports.Project = Project;
@@ -32,7 +34,7 @@ var ProjectSchema= new mongoose.Schema({
 //////////////////////////////////
 
 var SubjectSchema= new mongoose.Schema({
-	uniquename: {type: String, required: true,unique: true,},
+	id: {type: String, required: true,unique: true,},
 	name: {type: String, required: true,unique: false,},
 	project_id: {type: String, required: true,unique: false,},
 	twittername: {type: String, required: false,unique: false,},
@@ -40,6 +42,7 @@ var SubjectSchema= new mongoose.Schema({
 	avatar: {type: String},
 	exclude: {type: Array},
 	trace: {type: Number},
+	total: {type: Object},
 }),
 	Subject= mongooseMain.model('Subject',SubjectSchema);
 	exports.Subject = Subject;
@@ -47,7 +50,9 @@ var SubjectSchema= new mongoose.Schema({
 var SampleSchema= new mongoose.Schema({
 	project_id: {type: String, required: true,unique: false,},
 	date_created: {type: Date, default: new Date()},
-	item: {type: Date, default: new Date()},
+	items:  {type: Object},
+	info:  {type: Object},
+	tweets: {type: Array},
 }),
 	Sample= mongooseMain.model('Sample',SampleSchema);
 	exports.Sample = Sample;

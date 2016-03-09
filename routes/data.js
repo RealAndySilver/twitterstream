@@ -100,6 +100,7 @@ exports.notMeasuredWords =  [
 		'all' 	,
 		'to' 	,
 		'than'	,
+		'then'	,
 		'for' 	,
 		'you' 	,
 		'your' 	,
