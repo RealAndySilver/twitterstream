@@ -24,6 +24,7 @@ var ProjectSchema= new mongoose.Schema({
 	projectname: {type: String, required: true,unique: false,},
 	twitterkeys: {type: Object, required: false,unique: false,},
 	notmeasured: {type: Array},
+	tracking_time: {type: Number, required: false,unique: false,},
 	date_created: {type: Date, default: new Date()},
 	laststart_date: {type: Date},
 }),
@@ -48,8 +49,8 @@ var SubjectSchema= new mongoose.Schema({
 	exports.Subject = Subject;
 
 var SampleSchema= new mongoose.Schema({
-	project_id: {type: String, required: true,unique: false,},
-	date_created: {type: Date, default: new Date()},
+	project_id: {type: String, required: true, unique: false,},
+	date_created: {type: Date, required: true, default: new Date()},
 	items:  {type: Object},
 	info:  {type: Object},
 	tweets: {type: Array},
